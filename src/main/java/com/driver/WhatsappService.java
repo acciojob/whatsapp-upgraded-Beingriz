@@ -16,11 +16,13 @@ public class WhatsappService {
         return false;
     }
 
-//    public Group createGroup(List<User> users) {
-//    }
-//
-//    public int createMessage(String content) {
-//    }
+    public Group createGroup(List<User> users) {
+       return whatsappRepository.createGroup(users);
+    }
+
+    public int createMessage(String content) {
+
+    }
 //
 //    public int sendMessage(Message message, User sender, Group group) {
 //    }
