@@ -12,15 +12,9 @@ public class Group {
 
     private User admin;
 
-    public Group() {
-    }
-
-    public Group(String name, int numberOfParticipants, int count, List<User> users, User admin) {
+    public Group(String name, int numberOfParticipants) {
         this.name = name;
         this.numberOfParticipants = numberOfParticipants;
-        this.count = count;
-        this.users = users;
-        this.admin = admin;
     }
 
     public String getName() {
