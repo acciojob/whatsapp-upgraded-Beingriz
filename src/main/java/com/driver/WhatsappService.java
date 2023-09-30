@@ -21,18 +21,22 @@ public class WhatsappService {
     }
 
     public int createMessage(String content) {
-
+        return 0;
     }
 
     public int sendMessage(Message message, User sender, Group group) {
+        return 0;
     }
 
     public String changeAdmin(User approver, User user, Group group) {
+        return  "";
     }
 
     public int removeUser(User user) {
+        return 0;
     }
 
     public String findMessage(Date start, Date end, int k) {
+        return "";
     }
 }
