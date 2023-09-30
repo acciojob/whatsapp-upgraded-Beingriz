@@ -21,19 +21,32 @@ public class WhatsappService {
     }
 
     public int createMessage(String content) {
-        return 0;
+
+        return  whatsappRepository.createMessage(content);
     }
 
     public int sendMessage(Message message, User sender, Group group) {
-        return 0;
+        //Throw "Group does not exist" if the mentioned group does not exist
+        //Throw "You are not allowed to send message" if the sender is not a member of the group
+        //If the message is sent successfully, return the final number of messages in that group.
+        return whatsappRepository.sendMessgae(message,sender,group);
     }
 
     public String changeAdmin(User approver, User user, Group group) {
-        return  "";
+        //Throw "Group does not exist" if the mentioned group does not exist
+        //Throw "Approver does not have rights" if the approver is not the current admin of the group
+        //Throw "User is not a participant" if the user is not a part of the group
+        //Change the admin of the group to "user" and return "SUCCESS". Note that at one time there is only one admin and the admin rights are transferred from approver to user.
+        return whatsappRepository.changeAdmin(approver, user, group);
     }
 
     public int removeUser(User user) {
-        return 0;
+        //A user belongs to exactly one group
+        //If user is not found in any group, throw "User not found" exception
+        //If user is found in a group and it is the admin, throw "Cannot remove admin" exception
+        //If user is not the admin, remove the user from the group, remove all its messages from all the databases, and update relevant attributes accordingly.
+        //If user is removed successfully, return (the updated number of users in the group + the updated number of messages in group + the updated number of overall messages)
+        return whatsappRepository.removeUser(user);
     }
 
     public String findMessage(Date start, Date end, int k) {
