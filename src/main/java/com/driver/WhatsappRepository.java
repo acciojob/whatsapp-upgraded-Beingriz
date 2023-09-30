@@ -2,134 +2,149 @@ package com.driver;
 
 import org.springframework.stereotype.Repository;
 
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Repository
 public class WhatsappRepository {
-    //User Database
-    Map<String, User> userDb = new HashMap<>();
-    Map<User, Group> groupDb = new HashMap<>();
 
-    Map<Integer, Message> messages = new HashMap<>();
+    private Map<Group, List<User>> groupUserMap;
+    private Map<Group, List<Message>> groupMessageMap;
+    private Map<Group, User> groupAdminMap;
+    private Map<String, User> usersMap;
+    private Map<Message, User> senderMap;
+    private int groupCount;
+    private int messageId;
 
-    Map<User,List<Message>> userMessagesDb  = new HashMap<>();
+    public WhatsappRepository(){
+        this.groupUserMap = new HashMap<>();
+        this.groupMessageMap = new HashMap<>();
+        this.groupAdminMap = new HashMap<>();
+        this.usersMap = new HashMap<>();
+        this.senderMap = new HashMap<>();
+        this.groupCount = 0;
+        this.messageId = 0;
+    }
 
-    Map<Group,List<Message>> groupMessagesDb = new HashMap<>();
+    public boolean MobileExist(String mobile){
+        if(usersMap.containsKey(mobile)){
+            return true;
+        }
+        return false;
+    }
+    public void createUserDB(String name, String mobile){
+        usersMap.put(mobile, new User(name, mobile));
+    }
 
-    public boolean createUser(String name, String mobileNo){
-        if(!userDb.containsKey(mobileNo)){
-            userDb.put(mobileNo, new User(name, mobileNo));
+    public Group createChatDB(List<User> users1){
+        Group newGroup = new Group(users1.get(1).getName(), 2);
+        groupUserMap.put(newGroup, users1);
+        groupAdminMap.put(newGroup, users1.get(0));
+        return newGroup;
+    }
+    public Group createGroupDB(List<User> users2){
+        this.groupCount++;
+        Group newGroup = new Group("Group "+this.groupCount, users2.size());
+        groupUserMap.put(newGroup, users2);
+        groupAdminMap.put(newGroup, users2.get(0));
+        return newGroup;
+    }
+
+    public int createMessageDB(String content){
+        this.messageId++;
+        Message message = new Message(this.messageId, content, new Date());
+        return this.messageId;
+    }
+    public boolean checkGroup(Group group){
+        if(groupUserMap.containsKey(group)){
+            return true;
+        }
+        return false;
+    }
+    public boolean checkSender(User sender, Group group){
+        List<User> users = groupUserMap.get(group);
+        if(users.contains(sender)){
+            return true;
+        }
+        return false;
+    }
+    public int sendMessage(Message message, User sender, Group group){
+        List<Message> messages = new ArrayList<>();
+
+        if(groupMessageMap.containsKey(group)){
+            messages = groupMessageMap.get(group);
+        }
+
+        messages.add(message);
+        groupMessageMap.put(group, messages);
+        senderMap.put(message, sender);
+
+        return messages.size();
+    }
+
+    public boolean checkApprover(User approver, Group group){
+        List<User> users = groupUserMap.get(group);
+        if(users.get(0) == approver){
             return true;
         }
         return false;
     }
 
-    public Group createGroup(List<User> users) {
-        Group group =  new Group();
-        if(users.size()==2){
-            group.setName(users.get(1).getName());
-            group.setAdmin(users.get(0));
-            group.setNumberOfParticipants(users.size());
-            group.setUsers(users);
-            groupDb.put(users.get(0),group);
-        }
-        if(users.size()>2){
-            String name = "Group "+group.getCount()+1;
-            group.setName(name);
-            group.setCount(group.getCount()+1);
-            group.setAdmin(users.get(0));
-            group.setNumberOfParticipants(users.size());
-            group.setUsers(users);
-            groupDb.put(users.get(0),group);
-        }
-        return group;
+    public void changeAdminDB(User approver, Group group, User user){
+        groupAdminMap.put(group, user);
     }
 
-    public int createMessage(String content) {
-        Message msg = new Message();
-        msg.setId(msg.getId()+1);
-        msg.setContent(content);
-        Date currDate = new Date();
-        msg.setTimestamp(currDate);
-        messages.put(msg.getId(), msg);
-        return msg.getId();
-    }
+    public int removeUser(User user) throws Exception{
+        boolean userFound = false;
+        Group currGroup = null;
 
-    public int sendMessgae(Message message, User sender, Group group) {
-        //Throw "Group does not exist" if the mentioned group does not exist
-        //Throw "You are not allowed to send message" if the sender is not a member of the group
-        //If the message is sent successfully, return the final number of messages in that group.
-        if(!groupDb.containsValue(group)){
-            throw new RuntimeException("Group does not exist");
-        }
-        List<User> users = group.getUsers();
-        if(!users.contains(sender)){
-            throw new RuntimeException("You are not allowed to send message");
-        }
-        List<Message> messageList = groupMessagesDb.get(group);
-        messageList.add(message);
-        groupMessagesDb.put(group,messageList);
-        List<Message> usermsg =  userMessagesDb.get(sender);
-        usermsg.add(message);
-        userMessagesDb.put(sender,usermsg);
-        return groupMessagesDb.get(group).size();
-    }
+        for(Group group : groupUserMap.keySet()){
+            List<User> users = groupUserMap.get(group);
 
-    public String changeAdmin(User approver, User user, Group group) {
-        //Throw "Group does not exist" if the mentioned group does not exist
-        //Throw "Approver does not have rights" if the approver is not the current admin of the group
-        //Throw "User is not a participant" if the user is not a part of the group
-        //Change the admin of the group to "user" and return "SUCCESS". Note that at one time there is only one admin and the admin rights are transferred from approver to user.
+            for(User currUser : users){
+                if(currUser.equals(user)){
+                    if(groupAdminMap.get(group).equals(user)){
+                        throw new Exception("Cannot remove admin");
+                    }
 
-        if(!groupDb.containsKey(group)){
-            throw new RuntimeException("Group does not exist");
-        }
-        List<User> users = group.getUsers();
-        if(!groupDb.containsKey(approver)){
-            throw new RuntimeException("Approver does not have rights");
-        }
-        if(!users.contains(user)){
-            throw new RuntimeException("User is not a participant");
-        }
-        Group grp = groupDb.get(approver);
-        groupDb.remove(approver);
-        groupDb.put(user,grp);
-        return "SUCCESS";
-
-    }
-
-    public int removeUser(User user) {
-        //A user belongs to exactly one group
-        //If user is not found in any group, throw "User not found" exception
-        //If user is found in a group and it is the admin, throw "Cannot remove admin" exception
-        //If user is not the admin, remove the user from the group, remove all its messages from all the databases, and update relevant attributes accordingly.
-        //If user is removed successfully, return (the updated number of users in the group + the updated number of messages in group + the updated number of overall messages)
-        int res = 0;
-        Group group = new Group();
-        for (Map.Entry<User,Group> set: groupDb.entrySet() ) {
-           if(!set.getValue().getUsers().contains(user)){
-               throw new RuntimeException("User not found");
-           }if(set.getKey()==user){
-               throw new RuntimeException("Cannot remove admin");
+                    currGroup = group;
+                    userFound = true;
+                    break;
+                }
             }
-           // Removing User and Updating DB
-            User us = user;
-            group = set.getValue();
-            set.getValue().getUsers().remove(user);
-            groupDb.put(us,set.getValue());
-            res = groupDb.get(user).getUsers().size();
+            if(userFound)
+                break;
         }
-        // Removing Msgs of User and Updating Attribute
-        int size = userMessagesDb.get(user).size();
-        List<Message> msgs = userMessagesDb.get(user);
-        for (Message msg :msgs ) {
-            messages.remove(msg.getId());
-            groupMessagesDb.get(group).remove(msg.getId());
+
+        if(!userFound){
+            throw new Exception("User not found");
         }
-        res+=groupMessagesDb.get(group).size()+messages.size();
-    return res;
+
+        List<User> users = groupUserMap.get(currGroup);
+        List<User> updatedUser = new ArrayList<>();
+        for(User user1 : users){
+            if(user1.equals(user))
+                continue;
+            updatedUser.add(user1);
+        }
+        groupUserMap.put(currGroup, updatedUser);
+
+        List<Message> messages = groupMessageMap.get(currGroup);
+        List<Message> updatedMessage = new ArrayList<>();
+        for(Message message : messages){
+            if(senderMap.get(message).equals(user))
+                continue;
+            updatedMessage.add(message);
+        }
+        groupMessageMap.put(currGroup, updatedMessage);
+
+        HashMap<Message, User> updatedSenderMap = new HashMap<>();
+        for(Message message : senderMap.keySet()){
+            if (senderMap.get(message).equals(user))
+                continue;
+            updatedSenderMap.put(message, senderMap.get(message));
+        }
+        senderMap = updatedSenderMap;
+
+        return updatedUser.size() + updatedMessage.size() + senderMap.size();
     }
 }
