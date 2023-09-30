@@ -23,16 +23,16 @@ public class WhatsappService {
     public int createMessage(String content) {
 
     }
-//
-//    public int sendMessage(Message message, User sender, Group group) {
-//    }
-//
-//    public String changeAdmin(User approver, User user, Group group) {
-//    }
-//
-//    public int removeUser(User user) {
-//    }
-//
-//    public String findMessage(Date start, Date end, int k) {
-//    }
+
+    public int sendMessage(Message message, User sender, Group group) {
+    }
+
+    public String changeAdmin(User approver, User user, Group group) {
+    }
+
+    public int removeUser(User user) {
+    }
+
+    public String findMessage(Date start, Date end, int k) {
+    }
 }
